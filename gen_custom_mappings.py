@@ -2,6 +2,7 @@ import requests
 import PlexAniSync
 import anilist
 import logging
+from yaml import dump
 from datetime import datetime
 from anilist import find_id_best_match
 
@@ -85,6 +86,27 @@ def map_from_sonarr():
             matches = match_all_titles(series)
             for season, match in matches:
                 f.write(f"{series['title']}^{season}^{match}\n")
+
+def ini_to_yaml():
+    with open('custom_mappings.ini', 'r', encoding='utf-8') as f:
+        mappings = f.read()
+    mapping_dict = {}
+    for mapping in mappings.splitlines():
+        title, season, anilist = mapping.split("^")
+        if title not in mapping_dict:
+            mapping_dict[title] = []
+        mapping_dict[title].append({
+            "season": int(season),
+            "anilist-id": int(anilist),
+        })
+    output_format = {'entries': []}
+    for k, v in mapping_dict.items():
+        output_format['entries'].append({
+            'title': k,
+            'seasons': v
+        })
+    with open('custom_mappings.yaml', 'w', encoding='utf-8') as f:
+        f.write(dump(output_format))
 
 
 if __name__ == '__main__':
